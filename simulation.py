@@ -1,12 +1,14 @@
 import numpy as np
 from tqdm import tqdm
 import time
-from id_123456789_987654321 import Planner
+from id_123456789_987654321 import Planner as p1
+from id_206567067_318880754 import Planner as p2
 
 NUM_ROUNDS = 10 ** 6
 PHASE_LEN = 10 ** 2
 TIME_CAP = 2 * (10 ** 2)
 
+np.random.seed(318880754)
 
 class MABSimulation:
     def __init__(self, num_rounds, phase_len, num_arms, num_users, arms_thresh, users_distribution, ERM):
@@ -48,14 +50,14 @@ class MABSimulation:
         else:
             return np.random.uniform(0, 2 * self.ERM[sampled_user][chosen_arm])
 
-    def deactivate_arms(self):
+    def deactivate_arms(self,i):
         """
         this function is called at the end of each phase and deactivates arms that havn't gotten enough exposure
         (deactivated arm == arm that has departed)
         """
         for arm in range(self.num_arms):
             if self.exposure_list[arm] < self.arms_thresh[arm]:
-                if arm not in self.inactive_arms: print("\n arm " + str(arm) + " is deactivated!")
+                if arm not in self.inactive_arms: print("\n arm " + str(arm) + f" is deactivated! round {i}")
                 self.inactive_arms.add(arm)
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.
 
@@ -75,7 +77,7 @@ class MABSimulation:
             self.exposure_list[chosen_arm] += 1
 
             if (i + 1) % self.phase_len == 0 and with_deactivation:  # satisfied only when it is the end of the phase
-                self.deactivate_arms()
+                self.deactivate_arms(i)
 
         if time.time() - begin_time > TIME_CAP:
             print("the planner operation is too slow")
@@ -148,7 +150,7 @@ def run_simulation(simulation_num):
 
     mab = MABSimulation(**params)
 
-    planner = Planner(params['num_rounds'], params['phase_len'], params['num_arms'], params['num_users'],
+    planner = p2(params['num_rounds'], params['phase_len'], params['num_arms'], params['num_users'],
                       params['arms_thresh'], params['users_distribution'])
 
     print('planner ' + planner.get_id() + ' is currently running')

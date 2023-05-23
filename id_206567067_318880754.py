@@ -24,23 +24,39 @@ class Planner:
         self.num_arms = num_arms
         self.arms_thresh = arms_thresh
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.
+        self.users_distribution = users_distribution
+        self.save_me = None
 
     def choose_arm(self, user_context):
         """
         :input: the sampled user (integer in the range [0,num_users-1])
         :output: the chosen arm, content to show to the user (integer in the range [0,num_arms-1])
         """
-
         arms_tried = int(sum(self.num_chosen[user_context][:]))
-        if arms_tried < self.num_arms:
+        if self.save_me is not None:
+            chosen_arm = self.save_me
+        elif arms_tried < self.num_arms:
             chosen_arm = arms_tried
         else:
             chosen_arm = np.argmax(self.UCB[user_context][:])
-        self.most_recent_user = int(user_context)
-        self.most_recent_arm = int(chosen_arm)
-        self.num_chosen[int(user_context)][chosen_arm] += 1
-        self.exposure_list[chosen_arm] += 1
+
+        weighted_reward = [np.average(self.UCB[:][arm], weights=self.users_distribution)
+                           for arm in range(self.num_arms)]
+        best_weighted_reward = np.argmax(np.array(weighted_reward))
+        if best_weighted_reward != chosen_arm and self.save_me is None:
+            if self.arms_thresh[best_weighted_reward] - self.exposure_list[best_weighted_reward] == (
+                    self.phase_len - ((self.rounds_elapsed + 1) % self.phase_len)):
+                self.save_me = best_weighted_reward
+                chosen_arm = best_weighted_reward
+                print(f"saving arm: {chosen_arm} round{self.rounds_elapsed}")
+
+
+        self.most_recent_user = user_context
+        self.most_recent_arm = chosen_arm
+        self.num_chosen[user_context][int(chosen_arm)] += 1
+        self.exposure_list[int(chosen_arm)] += 1
         if (self.rounds_elapsed + 1) % self.phase_len == 0:
+            self.save_me = None
             self.deactivate_arms()
         self.rounds_elapsed += 1
         return chosen_arm
@@ -66,8 +82,7 @@ class Planner:
         """
         for arm in range(self.num_arms):
             if self.exposure_list[arm] < self.arms_thresh[arm]:
-                if arm not in self.deactivated: print(
-                    "\n arm " + str(arm) + f" is deactivated! not sim round: {self.rounds_elapsed}")
+                if arm not in self.deactivated: print("\n arm " + str(arm) + f" is deactivated!")
                 self.deactivated.add(arm)
-                self.UCB[:][arm] = np.NINF
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.
+        self.save_me = None
