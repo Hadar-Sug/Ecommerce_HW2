@@ -40,9 +40,9 @@ class Planner:
         else:
             chosen_arm = np.argmax(self.UCB[user_context][:])
 
-        weighted_reward = [np.average(self.UCB[:][arm], weights=self.users_distribution)
-                           for arm in range(self.num_arms)]
-        best_weighted_reward = np.argmax(np.array(weighted_reward))
+        weighted_reward = np.average(self.UCB, weights=self.users_distribution,axis=0)
+
+        best_weighted_reward = np.argmax(weighted_reward)
         if best_weighted_reward != chosen_arm and self.save_me is None:
             if self.arms_thresh[best_weighted_reward] - self.exposure_list[best_weighted_reward] == (
                     self.phase_len - ((self.rounds_elapsed + 1) % self.phase_len)):
