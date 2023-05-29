@@ -69,5 +69,5 @@ class Planner:
                 if arm not in self.deactivated: print(
                     "\n arm " + str(arm) + f" is deactivated! not sim round: {self.rounds_elapsed}")
                 self.deactivated.add(arm)
-                self.UCB[:][arm] = np.NINF
+                self.UCB[:, arm] = -1
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.

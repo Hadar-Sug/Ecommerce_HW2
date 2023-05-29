@@ -26,6 +26,7 @@ class Planner:
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.
         self.users_distribution = users_distribution
         self.save_me = None
+        self.best_arm_score = {"arm": -1, "score": -1}  # TODO: make sure this doesnt fuck shit up
 
     def choose_arm(self, user_context):
         """
@@ -40,16 +41,15 @@ class Planner:
         else:
             chosen_arm = np.argmax(self.UCB[user_context][:])
 
-        weighted_reward = np.average(self.UCB, weights=self.users_distribution,axis=0)
-
-        best_weighted_reward = np.argmax(weighted_reward)
-        if best_weighted_reward != chosen_arm and self.save_me is None:
-            if self.arms_thresh[best_weighted_reward] - self.exposure_list[best_weighted_reward] == (
+        # weighted_reward = np.average(self.UCB, weights=self.users_distribution, axis=0)
+        #
+        best_weighted_arm = self.best_arm_score["arm"]
+        if best_weighted_arm != chosen_arm and self.save_me is None:
+            if self.arms_thresh[best_weighted_arm] - self.exposure_list[best_weighted_arm] == (
                     self.phase_len - ((self.rounds_elapsed + 1) % self.phase_len)):
-                self.save_me = best_weighted_reward
-                chosen_arm = best_weighted_reward
+                self.save_me = best_weighted_arm
+                chosen_arm = best_weighted_arm
                 print(f"saving arm: {chosen_arm} round{self.rounds_elapsed}")
-
 
         self.most_recent_user = user_context
         self.most_recent_arm = chosen_arm
@@ -70,10 +70,14 @@ class Planner:
         self.rewards[user][arm] += reward
         mu = self.rewards[user][arm] / self.num_chosen[user][arm]
         self.UCB[user][arm] = mu + (2 * np.log(self.Ts[user]) / self.num_chosen[user][arm]) ** 0.5
+        arm_score = np.average(self.UCB[:, arm], weights=self.users_distribution, axis=0)
+        if arm_score > self.best_arm_score["score"]:
+            self.best_arm_score["arm"] = arm
+            self.best_arm_score["score"] = arm_score
 
     def get_id(self):
         # TODO: Make sure this function returns your ID, which is the name of this file!
-        return "id_123456789_987654321"
+        return "id_206567067_318880754"
 
     def deactivate_arms(self):
         """
@@ -84,5 +88,6 @@ class Planner:
             if self.exposure_list[arm] < self.arms_thresh[arm]:
                 if arm not in self.deactivated: print("\n arm " + str(arm) + f" is deactivated!")
                 self.deactivated.add(arm)
+                self.UCB[:, arm] = -1
         self.exposure_list = np.zeros(self.num_arms)  # initiate the exposure list for the next phase.
         self.save_me = None

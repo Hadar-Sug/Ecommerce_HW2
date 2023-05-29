@@ -8,7 +8,9 @@ NUM_ROUNDS = 10 ** 6
 PHASE_LEN = 10 ** 2
 TIME_CAP = 2 * (10 ** 2)
 
-np.random.seed(318880754)
+
+# np.random.seed(318880754)
+
 
 class MABSimulation:
     def __init__(self, num_rounds, phase_len, num_arms, num_users, arms_thresh, users_distribution, ERM):
@@ -50,7 +52,7 @@ class MABSimulation:
         else:
             return np.random.uniform(0, 2 * self.ERM[sampled_user][chosen_arm])
 
-    def deactivate_arms(self,i):
+    def deactivate_arms(self, i):
         """
         this function is called at the end of each phase and deactivates arms that havn't gotten enough exposure
         (deactivated arm == arm that has departed)
@@ -137,6 +139,22 @@ def get_simulation_params(simulation_num):
             'arms_thresh': np.array([0, 0.4, 0.4]) * PHASE_LEN,
             'ERM': np.array([[0.5, 0, 0], [0, (1 + (4 * (NUM_ROUNDS ** (-1 / 3)))) / 2, 1 / 2]])
         },
+        {
+            'num_rounds': NUM_ROUNDS,
+            'phase_len': PHASE_LEN,
+            'num_arms': 6,
+            'num_users': 6,
+            'users_distribution': np.array([0.3, 0.2, 0.15, 0.1, 0.1, 0.15]),
+            'arms_thresh': np.array([0, 0.4, 0.4, 0.3, 0.2, 0.1]) * PHASE_LEN,
+            'ERM': np.array([
+                [0.4, 0.2, 0.1, 0.9, 0.1, 0.4],
+                [0.05, 0.5, 0.1, 0.8, 0.47, 0.2],
+                [0.3, 0.5, 0.3, 0.5, 0.5, 0.5],
+                [0.7, 0.9, 0.01, 0.4, 0.4, 0.2],
+                [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+                [0.1, 0.4, 0.2, 0.7, 0.3, 0.4]]
+            )
+        },
     ]
     return simulations[simulation_num]
 
@@ -151,7 +169,7 @@ def run_simulation(simulation_num):
     mab = MABSimulation(**params)
 
     planner = p2(params['num_rounds'], params['phase_len'], params['num_arms'], params['num_users'],
-                      params['arms_thresh'], params['users_distribution'])
+                 params['arms_thresh'], params['users_distribution'])
 
     print('planner ' + planner.get_id() + ' is currently running')
     reward = mab.simulation(planner)
@@ -162,6 +180,7 @@ def run_simulation(simulation_num):
 def main():
     reward = run_simulation(0)
     print("The total reward of your planner is " + str(reward))
+
 
 
 if __name__ == '__main__':
