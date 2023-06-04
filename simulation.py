@@ -3,13 +3,14 @@ from tqdm import tqdm
 import time
 from id_123456789_987654321 import Planner as p1
 from id_206567067_318880754 import Planner as p2
+from id_206567067_318880754_test2 import Planner as p3
+from tomer import Planner as p4
 
 NUM_ROUNDS = 10 ** 6
 PHASE_LEN = 10 ** 2
 TIME_CAP = 2 * (10 ** 2)
 
-
-# np.random.seed(318880754)
+np.random.seed(318880754)
 
 
 class MABSimulation:
@@ -31,6 +32,7 @@ class MABSimulation:
         self.arms_thresh = arms_thresh
         self.users_distribution = users_distribution
         self.ERM = ERM
+        self.gamma = None
         self.exposure_list = np.zeros(self.num_arms)
         # exposure_list[i] represents the number of exposures arm i has gotten in the current phase
         self.inactive_arms = set()  # set of arms that left the system
@@ -168,10 +170,10 @@ def run_simulation(simulation_num):
 
     mab = MABSimulation(**params)
 
-    planner = p2(params['num_rounds'], params['phase_len'], params['num_arms'], params['num_users'],
+    planner = p3(params['num_rounds'], params['phase_len'], params['num_arms'], params['num_users'],
                  params['arms_thresh'], params['users_distribution'])
 
-    print('planner ' + planner.get_id() + ' is currently running')
+    print('\nplanner ' + planner.get_id() + ' is currently running simulation num ' + str(simulation_num))
     reward = mab.simulation(planner)
 
     return reward
