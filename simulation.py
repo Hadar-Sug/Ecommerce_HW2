@@ -4,7 +4,7 @@ import time
 from id_123456789_987654321 import Planner as p1
 from id_206567067_318880754 import Planner as p2
 from id_206567067_318880754_test2 import Planner as p3
-from tomer import Planner as p4
+# from tomer import Planner as p4
 
 NUM_ROUNDS = 10 ** 6
 PHASE_LEN = 10 ** 2
